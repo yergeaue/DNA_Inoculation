@@ -1,6 +1,6 @@
 #Plant data
-setwd("C:/Users/etienne yergeau/OneDrive/Documents/IAF-INRS/Projects/20161130CharlotteGiardLaliberte/Results-DNARecruitment/plant/")
-plant=read.table(file=paste(path,"/plant/plant.txt", sep=""), header=T, sep="\t",  row.names=1)
+plant <- readRDS(file = here("data","intermediate","plant.RDS"))
+
 #check for normality
 shapiro.test(plant$CAT_activity) #OK P=0.1306
 shapiro.test(plant$SOD_activity) #OK P=0.1114
@@ -9,6 +9,7 @@ shapiro.test(plant$Leaf_WC) #OK P=0.5768
 shapiro.test(plant$Fresh_biomass) #OK P=0.2275
 shapiro.test(plant$Dry_biomass) #OK P=0.2072
 shapiro.test(plant$PWC) #OK P=0.1477
+
 #Check for homogenetiy of variance 
 bartlett.test(plant$CAT_activity, plant$SoilWaterContent) #OK P=0.203
 bartlett.test(plant$CAT_activity, plant$Inoculum) #OK P=0.4888
@@ -24,18 +25,18 @@ bartlett.test(plant$Dry_biomass, plant$SoilWaterContent) #OK P=0.3753
 bartlett.test(plant$Dry_biomass, plant$Inoculum) #OK P=0.7077
 bartlett.test(plant$PWC, plant$SoilWaterContent) #not OK P=0.01869
 bartlett.test(plant$PWC, plant$Inoculum) #OK P=0.4854
-#Anovas
-summary(aov(CAT_activity~SoilWaterContent*Inoculum+Bloc, data=plant))
-summary(aov(SOD_activity~SoilWaterContent*Inoculum+Bloc, data=plant))
-TukeyHSD(aov(SOD_activity~SoilWaterContent*Inoculum+Bloc, data=plant))
-summary(aov(RWC~SoilWaterContent*Inoculum+Bloc, data=plant))
-summary(aov(Leaf_WC~SoilWaterContent*Inoculum+Bloc, data=plant))
-summary(aov(Fresh_biomass~SoilWaterContent*Inoculum+Bloc, data=plant))
-summary(aov(Dry_biomass~SoilWaterContent*Inoculum+Bloc, data=plant))
-summary(aov(PWC~SoilWaterContent*Inoculum+Bloc, data=plant))
 
-#ggplot for boxplot
-library(ggplot2)
+#Anovas
+summary(aov(CAT_activity~SoilWaterContent*Inoculum+Bloc, data=plant)) #Only block significant
+summary(aov(SOD_activity~SoilWaterContent*Inoculum+Bloc, data=plant)) #Interaction term significant
+TukeyHSD(aov(SOD_activity~SoilWaterContent*Inoculum+Bloc, data=plant)) #Nothing in P-adjust
+summary(aov(RWC~SoilWaterContent*Inoculum+Bloc, data=plant)) #NS
+summary(aov(Leaf_WC~SoilWaterContent*Inoculum+Bloc, data=plant)) #Soil water content significant
+summary(aov(Fresh_biomass~SoilWaterContent*Inoculum+Bloc, data=plant)) #SWC and block significant
+summary(aov(Dry_biomass~SoilWaterContent*Inoculum+Bloc, data=plant)) #Bloc significant
+summary(aov(PWC~SoilWaterContent*Inoculum+Bloc, data=plant)) #SWC significant
+
+#boxplot
 box.SOD=ggplot(plant, aes(x=SoilWaterContent, y=SOD_activity, fill=Inoculum))+
   geom_boxplot()+
   scale_fill_manual(values=c("black", "lightgrey", "white"))+
@@ -53,5 +54,6 @@ box.PWC=ggplot(plant, aes(x=SoilWaterContent, y=PWC, fill=Inoculum))+
   ylab("Plant water content (%)")
 
 box.PWC
-ggsave(file="PWC.eps", box.PWC, width = 7, units = "in")
-ggsave(file="PWC.tiff", box.PWC, width = 7, units = "in", dpi=600)
+ggsave(file= here("output", "figures", "Fig1.pdf"), box.PWC, width = 7, units = "in")
+ggsave(file= here("output", "figures", "Fig1.pdf"), box.PWC, width = 7, units = "in", 
+       dpi=600, compression = "lzw")

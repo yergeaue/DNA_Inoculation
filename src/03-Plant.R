@@ -36,24 +36,33 @@ summary(aov(Fresh_biomass~SoilWaterContent*Inoculum+Bloc, data=plant)) #SWC and 
 summary(aov(Dry_biomass~SoilWaterContent*Inoculum+Bloc, data=plant)) #Bloc significant
 summary(aov(PWC~SoilWaterContent*Inoculum+Bloc, data=plant)) #SWC significant
 
+#Reorder treatments
+plant$Inoculum <- factor(plant$Inoculum, levels = c("ctrl", "irr", "amb"))
+
+#Long format
+plant.long <- gather(plant, variable, measurement, c(4:10))
+plant.long$variable <- factor(plant.long$variable, levels = c("CAT_activity",
+                                                              "SOD_activity", 
+                                                              "Dry_biomass", 
+                                                              "Fresh_biomass",
+                                                              "Leaf_WC", "PWC",
+                                                              "RWC"))
+
 #boxplot
-box.SOD=ggplot(plant, aes(x=SoilWaterContent, y=SOD_activity, fill=Inoculum))+
-  geom_boxplot()+
-  scale_fill_manual(values=c("black", "lightgrey", "white"))+
+box.plant <- ggplot(plant.long[plant.long$variable != "RWC",], aes(x=SoilWaterContent, y=measurement, fill=Inoculum, colour = Inoculum, alpha = 0.75))+
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.25))+
+  facet_wrap(~variable, scales = "free_y", strip.position = "left", nrow = 3, 
+             labeller = as_labeller(c("CAT_activity"="CAT activity (nmol/min/ml)", 
+                                      "SOD_activity"="SOD activity (nmol/min/ml)",
+                                      "Dry_biomass"="Dry biomass (g)", "Fresh_biomass"="Fresh biomass (g)",
+                                      "Leaf_WC"="Leaf water content (%)", "PWC"= "Plant water content (%)"))) +
+  scale_alpha_continuous(guide='none')+
+  scale_colour_manual(guide='none', values=color6[c(1,4,5)])+
+  scale_fill_manual(labels = c("Uninoculated", "Intermittent", "Continuous"), values=color6[c(1,4,5)])+
   theme_bw()+
-  ylab("SOD activity (")
-
-box.SOD
-ggsave(file="SOD.eps", box.SOD, width = 7, units = "in")
-ggsave(file="SOD.tiff", box.SOD, width = 7, units = "in", dpi=600)
-
-box.PWC=ggplot(plant, aes(x=SoilWaterContent, y=PWC, fill=Inoculum))+
-  geom_boxplot()+
-  scale_fill_manual(values=c("black", "lightgrey", "white"))+
-  theme_bw()+
-  ylab("Plant water content (%)")
-
-box.PWC
-ggsave(file= here("output", "figures", "Fig1.pdf"), box.PWC, width = 7, units = "in")
-ggsave(file= here("output", "figures", "Fig1.pdf"), box.PWC, width = 7, units = "in", 
-       dpi=600, compression = "lzw")
+  ylab(NULL)+
+  xlab("Soil water content")+
+  theme(strip.background = element_blank(), strip.placement = "outside")
+box.plant
+saveRDS(box.plant, file=here("data", "intermediate", "box.plant.RDS"))

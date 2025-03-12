@@ -2,6 +2,14 @@
 color6 <- c("#016180", "#4a8cb0", "#cde3f0","#EED9C4","#8c5c47", "#4c2c17")
 palette(brewer.pal(n=6, name="BrBG"))
 
+#Mapping file
+map <- read.table(file=here("data", "raw", "mapping_file.tsv"), header=T, 
+                    sep="\t", comment.char = "", row.names = 1)
+row.names(map)[40] <- "T1-I1-5"#Bug with row name
+rownames(map) <- gsub("-",".",rownames(map))
+map <- map[order(row.names(map)),]
+saveRDS(map, file = here("data","intermediate", "map.RDS"))
+
 #Plant
 plant <- read.table(file=here("data","raw", "plant.txt", sep=""), 
                     header=T, sep="\t",  row.names=1)
@@ -22,6 +30,7 @@ saveRDS(COG.all, file = here("data","intermediate", "COG.all.RDS"))
 genes.all <- read.table(file=here("data", "raw", "merged_gene_abundance.tsv"), 
                         header=T, sep="\t", comment.char = "", row.names = 1)
 genes.all <- genes.all[order(row.names(genes.all)),]#sort
+colnames(genes.all)[4] <- "T1.I1.5"#Bug with row name
 genes.all.rel <- data.frame(t(apply(genes.all, 1, "/", colSums(genes.all))))#Normalization
 colSums(genes.all.rel)#Sanity check - ok all 1s
 saveRDS(genes.all, file = here("data","intermediate", "genes.all.RDS"))

@@ -137,66 +137,47 @@ kruskal.test(Actinobacteria~interaction(phyla.aov$SoilWaterContent,phyla.aov$Ino
 COG.all <- readRDS(here("data", "intermediate", "COG.all.RDS"))
 genes.all.rel <- readRDS(here("data", "intermediate", "genes.all.rel.RDS"))
 #Merge annotations and relabund
-sum(rownames(COG.all) == colnames(genes.all.rel), na.rm=TRUE) #
-COG.relabund.all <- cbind(genes.all.rel, COG.all)
+sum(rownames(COG.all) == rownames(genes.all.rel), na.rm=TRUE) #11941999
+COG.rel.all <- cbind(genes.all.rel, COG.all)
 
 #Create summary data frame
-COG.relabund.all.sum <- COG.relabund.all %>%
+COG.rel.all.sum <- COG.rel.all %>%
   group_by(cog_category) %>%
   summarise(
-    n = n()#,
-    #over = sum(log2 > 0, na.rm = TRUE),
-    #under = sum(log2 < 0, na.rm = TRUE),
+    n = n(),
+    across(1:40, sum)
     
   ) %>%
   filter(
-    n > 100
+    n > 100000
   )
-COG.rhizo <- COG.rhizo[COG.rhizo$cog_category %in% COG.root$COG_category,] #to have matching legends with ROOT; NULL: 13505 6061 7444
-row.names(COG.rhizo) <- COG.rhizo$cog_category
-others.COG.rhizo <- data.frame("Others", (21765 - 13505 - sum(COG.rhizo$n)), (10565 - 6061 - sum(COG.rhizo$over)), (11200 - 7444 - sum(COG.rhizo$under))) #Omit NULL from Others count
-colnames(others.COG.rhizo) <- colnames(COG.rhizo)
-row.names(others.COG.rhizo) <- "Others"
-COG.rhizo <- rbind(COG.rhizo, others.COG.rhizo) 
-colSums(COG.rhizo[,2:4]) #8260 4504 3756
 
-#Get a column for all transcripts
-annot.rhizo <- annot[annot$gene_id %in% row.names(MT.rhizo),]
-
-COG.rhizo.all = annot.rhizo %>%
-  group_by(cog_category) %>%
-  summarise(
-    count = n(),
-    
-    
-  )
-COG.rhizo.all <- COG.rhizo.all[COG.rhizo.all$cog_category %in% COG.rhizo$cog_category,]
-row.names(COG.rhizo.all) <- COG.rhizo.all$cog_category
-others.COG.rhizo.all <- data.frame("Others", (1193501 - 799568 - sum(COG.rhizo.all$count))) #Omit NULL
-colnames(others.COG.rhizo.all) <- colnames(COG.rhizo.all)
-row.names(others.COG.rhizo.all) <- "Others"
-COG.rhizo.all <- rbind(COG.rhizo.all, others.COG.rhizo.all) 
-sum(COG.rhizo.all$count)
-
-COG.rhizo.all$cog_category == COG.rhizo$cog_category
-COG.rhizo <- cbind(COG.rhizo,COG.rhizo.all$count)
-colnames(COG.rhizo) <- c("COG_category", "n", "DA+", "DA-", "All")
+COG.rel.all.sum <- COG.rel.all.sum[,-2] #Remove n(): not a sample
+COG.rel.all.sum <- COG.rel.all.sum[,order(colnames(COG.rel.all.sum))]
+row.names(map) == colnames(COG.rel.all.sum[,2:41]) #All true
+COG.rel.all.sum.map <- cbind(t(COG.rel.all.sum[,2:41]), map)
+colnames(COG.rel.all.sum.map)[1:18] <- COG.rel.all.sum$cog_category
 
 #Prepare for ggplot
-COG.rhizo.long <- gather(COG.rhizo,subset,counts,3:5) #transform in long format for ggplot
-comp.rhizo.cog <- data.frame(Compartment = rep("Rhizosphere",45))#Add a column for compartment
-COG.rhizo.long <- cbind(COG.rhizo.long,comp.rhizo.cog)
-#Put everything together
-COG.long.both <- rbind(COG.rhizo.long, COG.root.long)
+COG.rel.long <- gather(COG.rel.all.sum.map, COG_category,RelAbund,1:18) #transform in long format for ggplot
 
-
-palette(c(brewer.pal(n = 9, name = "Set1"),"lightgrey", "black", "darkred", "darkblue", "darkgreen", "purple4", "brown3", "cyan"))
-stack.COG <- ggplot(COG.long.both, aes(fill = COG_category, y = counts, x = subset)) + 
+#Plot
+palette(c(brewer.pal(n = 9, name = "Set1"),"lightgrey", "black", "darkred", "darkblue", "darkgreen", "purple4", "brown3", "cyan", "magenta"))
+stack.COG <- ggplot(COG.rel.long, aes(fill = COG_category, y = RelAbund, x = Inoculum)) + 
   geom_bar( stat = "identity", position = "fill") +
-  ylab("Fraction of transcripts") + 
+  ylab("Relative abundance") + 
   scale_fill_manual(values = palette(), guide = guide_legend(title = "COG category")) +
   theme_bw() +
   scale_y_continuous( expand = c(0,0)) +
-  scale_x_discrete(name = "Subset") +
-  facet_grid(. ~ Compartment)
+  scale_x_discrete(name = "Inoculum") +
+  facet_grid(. ~ SoilWaterContent)
 stack.COG 
+
+
+bubble.cog <- ggplot(COG.rel.long, aes(y = COG_category, size = RelAbund, x = Inoculum, color = SoilWaterContent)) + 
+  geom_point(alpha=0.5 ) +
+  scale_color_manual(guide='none', values=color6[c(1,2,5,6)]) +
+  theme_bw() +
+  scale_x_discrete(name = "Inoculum") +
+  facet_grid(. ~ SoilWaterContent)
+bubble.cog

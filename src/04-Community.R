@@ -173,7 +173,6 @@ stack.COG <- ggplot(COG.rel.long, aes(fill = COG_category, y = RelAbund, x = Ino
   facet_grid(. ~ SoilWaterContent)
 stack.COG 
 
-
 bubble.cog <- ggplot(COG.rel.long, aes(y = COG_category, size = RelAbund, x = Inoculum, color = SoilWaterContent)) + 
   geom_point(alpha=0.5 ) +
   scale_color_manual(guide='none', values=color6[c(1,2,5,6)]) +
@@ -181,3 +180,22 @@ bubble.cog <- ggplot(COG.rel.long, aes(y = COG_category, size = RelAbund, x = In
   scale_x_discrete(name = "Inoculum") +
   facet_grid(. ~ SoilWaterContent)
 bubble.cog
+
+#Test for significance
+#Remove inoculums and original soils
+COG.rel.long.noinoc <- COG.rel.long[!COG.rel.long$SoilWaterContent %in% c("Inoculum","Soil"),]
+#Normality assumption
+COG.rel.long.noinoc %>%
+  group_by(COG_category) %>%
+  shapiro_test(RelAbund) #Most not ok even with sqrt and log10 transformation (mutate (LogRelAbund=log(Relabund)))
+
+#Equality of variances assumption
+COG.rel.long.noinoc %>%
+  group_by(COG_category) %>%
+  levene_test(RelAbund~Inoculum*SoilWaterContent) #ok
+
+#Computing the statistical test - kruskal test on effect of inoculation separetely for 15% and 50% 
+stat.test <- COG.rel.long.noinoc %>%
+  group_by(interaction(COG_category, SoilWaterContent)) %>%
+  kruskal_test(RelAbund ~ Inoculum)
+stat.test #Nothing significant

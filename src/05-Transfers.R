@@ -7,19 +7,107 @@ map.nosoil <- map[map$SoilWaterContent != "Soil",]
 genes.inoc.rel <- genes.inoc.rel[,order(colnames(genes.inoc.rel))]
 sum(rownames(map.nosoil)==colnames(genes.inoc.rel)) #38
 
-#Find genes that are 1) present in inoculum (given, since assembly if from inoculum only)
-#                   2) absent in the non-inoculated samples
-#                   3) are present in the rhizosphere
-#                   4) are abundant at a level that is unlikely due to relic (see paper)
+#Select genes that are 
+#1) present in inoculum (given, since assembly if from inoculum only)
+#2)Absent in controls
 genes.inoc.rel.absent <- genes.inoc.rel[rowSums(genes.inoc.rel[,map.nosoil$Inoculum=="ctrl"])==0,  ] #subset to absent in non inoculated
+#3)Present in rhizosphere
 genes.inoc.rel.absent <- genes.inoc.rel.absent[rowSums(genes.inoc.rel.absent[,c(3:14,21:32)])!=0,] #subset to present in the rhizosphere
+#Keep only genes that are defined at the kegg_entry
+annot.inoc.def <- annot.inoc[annot.inoc$kegg_entry != "NULL", ]
+genes.inoc.rel.absent <- genes.inoc.rel.absent[row.names(genes.inoc.rel.absent) %in% row.names(annot.inoc.def),]
+
+#4)Abundant at a safety margin (x) above relics
 dil <- 850/(50*100/0.5*1500/1000) #Dilution factor - added 850 ug in 15,000ug
-genes.inoc.rel.thresh.i <- genes.inoc.rel.absent[apply(genes.inoc.rel.absent[,c(3:14,21:32)], 1, max)
-                                                 >100*dil*genes.inoc.rel.absent[,1],]
-genes.inoc.rel.thresh.i <- genes.inoc.rel.thresh.i[genes.inoc.rel.thresh.i[,1]!=0,]
-genes.inoc.rel.thresh.ni <- genes.inoc.rel.absent[apply(genes.inoc.rel.absent[,c(3:14,21:32)], 1, max)
-                                                  >100*dil*genes.inoc.rel.absent[,2],]
-genes.inoc.rel.thresh.ni <- genes.inoc.rel.thresh.ni[genes.inoc.rel.thresh.ni[,2]!=0,]
+margin <- 10
+
+#Irrigated inoculum, 15% SWHC
+thresh.i.15 <- margin*dil*genes.inoc.rel.absent[,1] #threshold for each gene
+count.i.15 <- rowSums(genes.inoc.rel.absent[,(map.nosoil$Inoculum =="i" & map.nosoil$SoilWaterContent == "15%")]>thresh.i.15)
+sum(count.i.15>1)
+i.15 <- data.frame(thresh.i.15, count.i.15, 
+                   genes.inoc.rel.absent[,(map.nosoil$Inoculum =="i" & 
+                                             (map.nosoil$SoilWaterContent == "15%" |
+                                                map.nosoil$SoilWaterContent == "Inoculum"))])
+
+i.15.annot <- annot.inoc.def[row.names(annot.inoc.def)%in%row.names(i.15),]
+sum(row.names(i.15)==row.names(i.15.annot))#1060
+i.15.final <- cbind(i.15, i.15.annot[,c(1,3,4,27,29,31)])#Add annotations
+i.15.final <- i.15.final[i.15.final$count.i.15>=2,] #Keep only genes transferred 2 times and above
+i.15.pub <- i.15.final[,c(2,11:15)] #Keep only relevant columns for publication
+i.15.pub$tax_genus <- str_match(i.15.pub$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+i.15.pub$tax_genus <- gsub("\\bN\\b", "NULL", i.15.pub$tax_genus) #Fix the genus column
+i.15.pub$gene_id <- row.names(i.15.final) #Put back the row names
+i.15.pub$gene_id <- NULL
+i.15.pub <- i.15.pub[order(i.15.pub$count.i.15, decreasing = TRUE),] #Sort by number of samples above threshold
+colnames(i.15.pub) <- c("Count", "KEGG entry", "KEGG definition", "Phylum", "Order", "Genus")
+write.table(i.15.pub, file = here("output", "tables", "Table2.txt"), sep = "\t")
+
+#Ambient inoculum, 15% SWHC
+thresh.ni.15 <- margin*dil*genes.inoc.rel.absent[,2] #threshold for each gene
+count.ni.15 <- rowSums(genes.inoc.rel.absent[,(map.nosoil$Inoculum =="ni" & map.nosoil$SoilWaterContent == "15%")]>thresh.ni.15)
+sum(count.ni.15>1)
+ni.15 <- data.frame(thresh.ni.15, count.ni.15, 
+                   genes.inoc.rel.absent[,(map.nosoil$Inoculum =="ni" & 
+                                             (map.nosoil$SoilWaterContent == "15%" |
+                                                map.nosoil$SoilWaterContent == "Inoculum"))])
+
+ni.15.annot <- annot.inoc.def[row.names(annot.inoc.def)%in%row.names(ni.15),]
+sum(row.names(ni.15)==row.names(ni.15.annot))#1060
+ni.15.final <- cbind(ni.15, ni.15.annot[,c(1,3,4,27,29,31)])#Add annotations
+ni.15.final <- ni.15.final[ni.15.final$count.ni.15>=2,] #Keep only genes transferred 2 times and above
+ni.15.pub <- ni.15.final[,c(2,11:15)] #Keep only relevant columns for publication
+ni.15.pub$tax_genus <- str_match(ni.15.pub$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+ni.15.pub$tax_genus <- gsub("\\bN\\b", "NULL", ni.15.pub$tax_genus) #Fix the genus column
+ni.15.pub$gene_id <- row.names(ni.15.final) #Put back the row names
+ni.15.pub$gene_id <- NULL
+ni.15.pub <- ni.15.pub[order(ni.15.pub$count.ni.15, decreasing = TRUE),] #Sort by number of samples above threshold
+colnames(ni.15.pub) <- c("Count", "KEGG entry", "KEGG definition", "Phylum", "Order", "Genus")
+write.table(ni.15.pub, file = here("output", "tables", "Table3.txt"), sep = "\t")
+
+#Irrigated inoculum, 50% SWHC
+thresh.i.50 <- margin*dil*genes.inoc.rel.absent[,1] #threshold for each gene
+count.i.50 <- rowSums(genes.inoc.rel.absent[,(map.nosoil$Inoculum =="i" & map.nosoil$SoilWaterContent == "50%")]>thresh.i.50)
+sum(count.i.50>1)
+i.50 <- data.frame(thresh.i.50, count.i.50, 
+                   genes.inoc.rel.absent[,(map.nosoil$Inoculum =="i" & 
+                                             (map.nosoil$SoilWaterContent == "50%" |
+                                                map.nosoil$SoilWaterContent == "Inoculum"))])
+
+i.50.annot <- annot.inoc.def[row.names(annot.inoc.def)%in%row.names(i.50),]
+sum(row.names(i.50)==row.names(i.50.annot))#1060
+i.50.final <- cbind(i.50, i.50.annot[,c(1,3,4,27,29,31)])#Add annotations
+i.50.final <- i.50.final[i.50.final$count.i.50>=2,] #Keep only genes transferred 2 times and above
+i.50.pub <- i.50.final[,c(2,11:15)] #Keep only relevant columns for publication
+i.50.pub$tax_genus <- str_match(i.50.pub$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+i.50.pub$tax_genus <- gsub("\\bN\\b", "NULL", i.50.pub$tax_genus) #Fix the genus column
+i.50.pub$gene_id <- row.names(i.50.final) #Put back the row names
+i.50.pub$gene_id <- NULL
+i.50.pub <- i.50.pub[order(i.50.pub$count.i.50, decreasing = TRUE),] #Sort by number of samples above threshold
+colnames(i.50.pub) <- c("Count", "KEGG entry", "KEGG definition", "Phylum", "Order", "Genus")
+write.table(i.50.pub, file = here("output", "tables", "Table4.txt"), sep = "\t")
+
+#Ambient inoculum, 50% SWHC
+thresh.ni.50 <- margin*dil*genes.inoc.rel.absent[,2] #threshold for each gene
+count.ni.50 <- rowSums(genes.inoc.rel.absent[,(map.nosoil$Inoculum =="ni" & map.nosoil$SoilWaterContent == "50%")]>thresh.ni.50)
+sum(count.ni.50>1)
+ni.50 <- data.frame(thresh.ni.50, count.ni.50, 
+                   genes.inoc.rel.absent[,(map.nosoil$Inoculum =="ni" & 
+                                             (map.nosoil$SoilWaterContent == "50%" |
+                                                map.nosoil$SoilWaterContent == "Inoculum"))])
+
+ni.50.annot <- annot.inoc.def[row.names(annot.inoc.def)%in%row.names(ni.50),]
+sum(row.names(ni.50)==row.names(ni.50.annot))#1060
+ni.50.final <- cbind(ni.50, ni.50.annot[,c(1,3,4,27,29,31)])#Add annotations
+ni.50.final <- ni.50.final[ni.50.final$count.ni.50>=2,] #Keep only genes transferred 2 times and above
+ni.50.pub <- ni.50.final[,c(2,11:15)] #Keep only relevant columns for publication
+ni.50.pub$tax_genus <- str_match(ni.50.pub$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+ni.50.pub$tax_genus <- gsub("\\bN\\b", "NULL", ni.50.pub$tax_genus) #Fix the genus column
+ni.50.pub$gene_id <- row.names(ni.50.final) #Put back the row names
+ni.50.pub$gene_id <- NULL
+ni.50.pub <- ni.50.pub[order(ni.50.pub$count.ni.50, decreasing = TRUE),] #Sort by number of samples above threshold
+colnames(ni.50.pub) <- c("Count", "KEGG entry", "KEGG definition", "Phylum", "Order", "Genus")
+write.table(ni.50.pub, file = here("output", "tables", "Table5.txt"), sep = "\t")
 
 ##Visualise genes in the contigs
 ##Compare genes in Inoculum assembly vs. samples assembly (also contains controls - but selected genes should be absent from control - see above)

@@ -28,9 +28,11 @@ saveRDS(tax.all, file = here("data","intermediate", "tax.all.RDS"))
 saveRDS(COG.all, file = here("data","intermediate", "COG.all.RDS"))
 #Innoculum assembly
 annot.inoc <- read.table(file=here("data","raw", "annotations_innoc.tsv"), header=T, 
-                         sep="\t", row.names=2, comment.char = "", quote="")
+                         sep="\t", row.names=2, comment.char = "", quote="") #309078 obs of 32 variables
 annot.inoc <- annot.inoc[-123371,]#remove gene_id_gene_id_000 (not in gene file)
 annot.inoc<- annot.inoc[order(row.names(annot.inoc)),]#sort
+saveRDS(annot.inoc, file = here("data","intermediate", "annot.inoc.RDS"))
+
 
 #Genes
 #All samples assembly

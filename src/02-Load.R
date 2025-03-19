@@ -21,17 +21,31 @@ annot.all <- read.table(file=here("data","raw", "annotations.tsv"), header=T,
                  sep="\t", row.names=2, comment.char = "", quote="")
 annot.all <- annot.all[-4385263,]#remove gene_id_gene_id_000 (not in gene file)
 annot.all<- annot.all[order(row.names(annot.all)),]#sort
+annot.all$tax_genus <- str_match(annot.all$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+annot.all$tax_genus <- gsub("\\bN\\b", "NULL", annot.all$tax_genus) #Fix the genus column
 tax.all <- annot.all[,c(1,26:32)]
 COG.all <- annot.all[,c(1,16:19)]
 saveRDS(annot.all, file = here("data","intermediate", "annot.all.RDS"))
 saveRDS(tax.all, file = here("data","intermediate", "tax.all.RDS"))
 saveRDS(COG.all, file = here("data","intermediate", "COG.all.RDS"))
 #Innoculum assembly
-annot.inoc <- read.table(file=here("data","raw", "annotations_innoc.tsv"), header=T, 
-                         sep="\t", row.names=2, comment.char = "", quote="") #309078 obs of 32 variables
+annot.inoc <- read.table(file=here("data","raw", "annotations_inoc.tsv"), header=T, 
+                         sep="\t", comment.char = "", quote="") #309078 obs of 32 variables
+row.names(annot.inoc) <- annot.inoc$gene_id
 annot.inoc <- annot.inoc[-123371,]#remove gene_id_gene_id_000 (not in gene file)
-annot.inoc<- annot.inoc[order(row.names(annot.inoc)),]#sort
+annot.inoc<- annot.inoc |> arrange (gene_id)#sort
+annot.inoc$tax_genus <- str_match(annot.inoc$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+annot.inoc$tax_genus <- gsub("\\bN\\b", "NULL", annot.inoc$tax_genus) #Fix the genus column
+annot.inoc <- annot.inoc[,-33]
 saveRDS(annot.inoc, file = here("data","intermediate", "annot.inoc.RDS"))
+#Non-inoculated assembly
+annot.noninoc <- read.table(file=here("data","raw", "annotations_noninoc.tsv"), header=T, 
+                         sep="\t", row.names=2, comment.char = "", quote="") #11095067 obs of 32 variables
+annot.noninoc <- annot.noninoc[-123371,]#remove gene_id_gene_id_000 (not in gene file)
+annot.noninoc<- annot.noninoc[order(row.names(annot.noninoc)),]#sort
+annot.noninoc$tax_genus <- str_match(annot.noninoc$tax_genus, "[A-Z][a-z]*") #Fix the genus column
+annot.noninoc$tax_genus <- gsub("\\bN\\b", "NULL", annot.noninoc$tax_genus) #Fix the genus column
+saveRDS(annot.noninoc, file = here("data","intermediate", "annot.noninoc.RDS"))
 
 
 #Genes
@@ -73,3 +87,9 @@ colnames(gff.noninoc) <- c("contig_id", "start", "end", "strand", "gene_id")
 #Save intermediate
 saveRDS(gff.inoc, file = here("data","intermediate", "gff.inoc.RDS"))
 saveRDS(gff.noninoc, file = here("data","intermediate", "gff.noninoc.RDS"))
+
+#Blast output
+blast_output <- read.table(here("data","raw","blast_output.txt"), sep = "\t")
+colnames(blast_output) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+                            "qstart", "qend", "sstart", "send", "evalue", "bitscore")
+saveRDS(blast_output, file = here("data","intermediate","blast_output.RDS"))

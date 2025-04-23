@@ -16,7 +16,7 @@ ni.50.table <- readRDS(here("data","intermediate","ni.50.table.RDS"))
 
 #I inoculum, 15% SWHC
 blast.i.15 <- blast_output |> 
-  filter(qseqid%in%row.names(i.15.pub)) |> #Keep only genes potentially transferred
+  filter(qseqid%in%i.15.table$`Gene ID`) |> #Keep only genes potentially transferred
   left_join(gff.inoc, by = c("qseqid"="gene_id"), keep = TRUE) |> #add contig info for query genes
   left_join(gff.noninoc, by = c("sseqid"="gene_id"), keep = TRUE, suffix = c("_q", "_s")) |> #add contig info for subject genes
   mutate(contig.q.vs.s = interaction(contig_id_q,contig_id_s, sep = " vs ")) #Add column linking the two contigs
@@ -35,9 +35,96 @@ gene.i.15.noninoc <- gff.noninoc |>
   mutate(focal = gene_id%in%blast.i.15$sseqid) |>
   mutate(assembly = "non-inoculum")
 
-genei.15.both <- rbind(gene.i.15.inoc, gene.i.15.noninoc)
+gene.i.15.both <- rbind(gene.i.15.inoc, gene.i.15.noninoc)
 
-ggplot(gene.i.15.inoc, aes(xmin = start, xmax = end, y = contig_id, fill = focal, label=product_name)) +
+ggplot(gene.i.15.both, aes(xmin = start, xmax = end, y = contig_id, fill = focal, label=gene_id)) +
+  geom_gene_arrow(aes(forward = strand == "+")) +
+  geom_gene_label(align = "left")+
+  facet_wrap(~ contig.q.vs.s, scales = "free", ncol = 2) +
+  scale_fill_manual(values = color6[c(2,4)]) 
+
+#I inoculum, 50% SWHC
+blast.i.50 <- blast_output |> 
+  filter(qseqid%in%i.50.table$`Gene ID`) |> #Keep only genes potentially transferred
+  left_join(gff.inoc, by = c("qseqid"="gene_id"), keep = TRUE) |> #add contig info for query genes
+  left_join(gff.noninoc, by = c("sseqid"="gene_id"), keep = TRUE, suffix = c("_q", "_s")) |> #add contig info for subject genes
+  mutate(contig.q.vs.s = interaction(contig_id_q,contig_id_s, sep = " vs ")) #Add column linking the two contigs
+
+gene.i.50.inoc <- gff.inoc |>
+  filter(contig_id %in% blast.i.50$contig_id_q) |> #Keep only contigs from blast file
+  left_join(select(annot.inoc, gene_id, product_name, kegg_entry, kegg_definition)) |> #Add annotations (selected var)
+  left_join(select(blast.i.50, contig_id_q, contig.q.vs.s), by = c("contig_id"="contig_id_q")) |> #Add contig linkage info
+  mutate(focal = gene_id%in%blast.i.50$qseqid) |>
+  mutate(assembly = "inoculum")
+
+gene.i.50.noninoc <- gff.noninoc |>
+  filter(contig_id %in% blast.i.50$contig_id_s) |> #Keep only contigs from blast file
+  left_join(select(annot.noninoc, gene_id, product_name, kegg_entry, kegg_definition)) |> #Add annotations (selected var)
+  left_join(select(blast.i.50, contig_id_s, contig.q.vs.s), by = c("contig_id"="contig_id_s")) |> #Add contig linkage info
+  mutate(focal = gene_id%in%blast.i.50$sseqid) |>
+  mutate(assembly = "non-inoculum")
+
+gene.i.50.both <- rbind(gene.i.50.inoc, gene.i.50.noninoc)
+
+ggplot(gene.i.50.both, aes(xmin = start, xmax = end, y = contig_id, fill = focal, label=product_name)) +
+  geom_gene_arrow(aes(forward = strand == "+")) +
+  geom_gene_label(align = "left")+
+  facet_wrap(~ contig.q.vs.s, scales = "free", ncol = 2) +
+  scale_fill_manual(values = color6[c(2,4)]) 
+
+#NI inoculum, 15% SWHC
+blast.ni.15 <- blast_output |> 
+  filter(qseqid%in%ni.15.table$`Gene ID`) |> #Keep only genes potentially transferred
+  left_join(gff.inoc, by = c("qseqid"="gene_id"), keep = TRUE) |> #add contig info for query genes
+  left_join(gff.noninoc, by = c("sseqid"="gene_id"), keep = TRUE, suffix = c("_q", "_s")) |> #add contig info for subject genes
+  mutate(contig.q.vs.s = interaction(contig_id_q,contig_id_s, sep = " vs ")) #Add column linking the two contigs
+
+gene.ni.15.inoc <- gff.inoc |>
+  filter(contig_id %in% blast.ni.15$contig_id_q) |> #Keep only contigs from blast file
+  left_join(select(annot.inoc, gene_id, product_name, kegg_entry, kegg_definition)) |> #Add annotations (selected var)
+  left_join(select(blast.ni.15, contig_id_q, contig.q.vs.s), by = c("contig_id"="contig_id_q")) |> #Add contig linkage info
+  mutate(focal = gene_id%in%blast.ni.15$qseqid) |>
+  mutate(assembly = "inoculum")
+
+gene.ni.15.noninoc <- gff.noninoc |>
+  filter(contig_id %in% blast.ni.15$contig_id_s) |> #Keep only contigs from blast file
+  left_join(select(annot.noninoc, gene_id, product_name, kegg_entry, kegg_definition)) |> #Add annotations (selected var)
+  left_join(select(blast.ni.15, contig_id_s, contig.q.vs.s), by = c("contig_id"="contig_id_s")) |> #Add contig linkage info
+  mutate(focal = gene_id%in%blast.ni.15$sseqid) |>
+  mutate(assembly = "non-inoculum")
+
+gene.ni.15.both <- rbind(gene.ni.15.inoc, gene.ni.15.noninoc)
+
+ggplot(gene.ni.15.both, aes(xmin = start, xmax = end, y = contig_id, fill = focal, label=product_name)) +
+  geom_gene_arrow(aes(forward = strand == "+")) +
+  geom_gene_label(align = "left")+
+  facet_wrap(~ contig.q.vs.s, scales = "free", ncol = 2) +
+  scale_fill_manual(values = color6[c(2,4)]) 
+
+#NI inoculum, 50% SWHC
+blast.ni.50 <- blast_output |> 
+  filter(qseqid%in%ni.50.table$`Gene ID`) |> #Keep only genes potentially transferred
+  left_join(gff.inoc, by = c("qseqid"="gene_id"), keep = TRUE) |> #add contig info for query genes
+  left_join(gff.noninoc, by = c("sseqid"="gene_id"), keep = TRUE, suffix = c("_q", "_s")) |> #add contig info for subject genes
+  mutate(contig.q.vs.s = interaction(contig_id_q,contig_id_s, sep = " vs ")) #Add column linking the two contigs
+
+gene.ni.50.inoc <- gff.inoc |>
+  filter(contig_id %in% blast.ni.50$contig_id_q) |> #Keep only contigs from blast file
+  left_join(select(annot.inoc, gene_id, product_name, kegg_entry, kegg_definition)) |> #Add annotations (selected var)
+  left_join(select(blast.ni.50, contig_id_q, contig.q.vs.s), by = c("contig_id"="contig_id_q")) |> #Add contig linkage info
+  mutate(focal = gene_id%in%blast.ni.50$qseqid) |>
+  mutate(assembly = "inoculum")
+
+gene.ni.50.noninoc <- gff.noninoc |>
+  filter(contig_id %in% blast.ni.50$contig_id_s) |> #Keep only contigs from blast file
+  left_join(select(annot.noninoc, gene_id, product_name, kegg_entry, kegg_definition)) |> #Add annotations (selected var)
+  left_join(select(blast.ni.50, contig_id_s, contig.q.vs.s), by = c("contig_id"="contig_id_s")) |> #Add contig linkage info
+  mutate(focal = gene_id%in%blast.ni.50$sseqid) |>
+  mutate(assembly = "non-inoculum")
+
+gene.ni.50.both <- rbind(gene.ni.50.inoc, gene.ni.50.noninoc)
+
+ggplot(gene.ni.50.both, aes(xmin = start, xmax = end, y = contig_id, fill = focal,  label=product_name)) +
   geom_gene_arrow(aes(forward = strand == "+")) +
   geom_gene_label(align = "left")+
   facet_wrap(~ contig.q.vs.s, scales = "free", ncol = 2) +

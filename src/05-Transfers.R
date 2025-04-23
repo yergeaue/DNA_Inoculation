@@ -18,6 +18,7 @@ genes.inoc.rel.absent <- genes.inoc.rel.absent[rowSums(genes.inoc.rel.absent[,c(
 annot.inoc.def <- annot.inoc[annot.inoc$kegg_entry != "NULL", ]
 genes.inoc.rel.absent <- genes.inoc.rel.absent[row.names(genes.inoc.rel.absent) %in% row.names(annot.inoc.def),]
 genes.inoc.rel.absent$gene_id <- row.names(genes.inoc.rel.absent)
+saveRDS(genes.inoc.rel.absent, here("data", "intermediate","genes.inoc.rel.absent.RDS"))
 
 #4)Abundant at a safety margin (x) above relics
 dil <- 850/(50*100/0.5*1500/1000) #Dilution factor - added 850 ug in 15,000ug
@@ -101,13 +102,13 @@ tax.ni.50.sum <- ni.50.table %>%
 
 ##Intersect
 intersect(intersect(intersect(i.15.table$`Gene ID`, i.50.table$`Gene ID`),ni.15.table$`Gene ID`),ni.50.table$`Gene ID`)
-#"gene_id_270110" "gene_id_95425"  "gene_id_179887" "gene_id_196132" "gene_id_215568" "gene_id_268173"
-length(intersect(i.15.table$`Gene ID`, i.50.table$`Gene ID`)) #35
-length(intersect(i.15.table$`Gene ID`, ni.15.table$`Gene ID`)) #27
-length(intersect(i.15.table$`Gene ID`, ni.50.table$`Gene ID`)) #24
-length(intersect(i.50.table$`Gene ID`, ni.15.table$`Gene ID`)) #22
-length(intersect(i.50.table$`Gene ID`, ni.50.table$`Gene ID`)) #30
-length(intersect(ni.15.table$`Gene ID`, ni.50.table$`Gene ID`)) #31
+#"gene_id_69099" "gene_id_95425"  "gene_id_179887" "gene_id_196132" "gene_id_215568" "gene_id_226170" "gene_id_233774" "gene_id_268173"
+length(intersect(i.15.table$`Gene ID`, i.50.table$`Gene ID`)) #47
+length(intersect(i.15.table$`Gene ID`, ni.15.table$`Gene ID`)) #33
+length(intersect(i.15.table$`Gene ID`, ni.50.table$`Gene ID`)) #36
+length(intersect(i.50.table$`Gene ID`, ni.15.table$`Gene ID`)) #34
+length(intersect(i.50.table$`Gene ID`, ni.50.table$`Gene ID`)) #38
+length(intersect(ni.15.table$`Gene ID`, ni.50.table$`Gene ID`)) #47
 
 ##Use all genes that are above threshold, not only the ones appearing twice
 #Irrigated inoculum, 15% SWHC
@@ -156,7 +157,7 @@ ni.50.table.0 <- genes.inoc.rel.absent %>%
 
 #Combine all samples
 tax.trans <- bind_rows(list(i.15=i.15.table.0,ni.15=ni.15.table.0,i.50=i.50.table.0,ni.50=ni.50.table.0), .id="treatment")
-length(unique(tax.trans$`Gene ID`))#first see amount of unique:829
+length(unique(tax.trans$`Gene ID`))#first see amount of unique:1169
 #Create phylum level taxonomy table
 tax.trans.sum <- tax.trans %>%
   distinct(`Gene ID`, .keep_all = TRUE) %>%

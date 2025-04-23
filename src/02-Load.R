@@ -18,37 +18,30 @@ saveRDS(plant, file = here("data","intermediate", "plant.RDS"))
 #Annotations
 #All samples assembly
 annot.all <- read.table(file=here("data","raw", "annotations.tsv"), header=T, 
-                 sep="\t", row.names=2, comment.char = "", quote="")
+                 sep="\t", comment.char = "", quote="")
+row.names(annot.all) <- annot.all$gene_id
 annot.all <- annot.all[-4385263,]#remove gene_id_gene_id_000 (not in gene file)
 annot.all<- annot.all[order(row.names(annot.all)),]#sort
-annot.all$tax_genus <- str_match(annot.all$tax_genus, "[A-Z][a-z]*") #Fix the genus column
-annot.all$tax_genus <- gsub("\\bN\\b", "NULL", annot.all$tax_genus) #Fix the genus column
-tax.all <- annot.all[,c(1,26:32)]
-COG.all <- annot.all[,c(1,16:19)]
+tax.all <- annot.all[,c(1:2,27:33)]
+COG.all <- annot.all[,c(1:2,17:20)]
 saveRDS(annot.all, file = here("data","intermediate", "annot.all.RDS"))
 saveRDS(tax.all, file = here("data","intermediate", "tax.all.RDS"))
 saveRDS(COG.all, file = here("data","intermediate", "COG.all.RDS"))
-#Innoculum assembly
+#Inoculum assembly
 annot.inoc <- read.table(file=here("data","raw", "annotations_inoc.tsv"), header=T, 
-                         sep="\t", comment.char = "", quote="") #309078 obs of 32 variables
+                         sep="\t", comment.char = "", quote="") #309078 obs of 38 variables
 row.names(annot.inoc) <- annot.inoc$gene_id
-annot.inoc <- annot.inoc[-123371,]#remove gene_id_gene_id_000 (not in gene file)
 annot.inoc<- annot.inoc |> arrange (gene_id)#sort
-annot.inoc$tax_genus <- str_match(annot.inoc$tax_genus, "[A-Z][a-z]*") #Fix the genus column
-annot.inoc$tax_genus <- gsub("\\bN\\b", "NULL", annot.inoc$tax_genus) #Fix the genus column
-annot.inoc <- annot.inoc[,-33]
 saveRDS(annot.inoc, file = here("data","intermediate", "annot.inoc.RDS"))
-#Non-inoculated assembly
+#Non-inoculum assembly
 annot.noninoc <- read.table(file=here("data","raw", "annotations_noninoc.tsv"), header=T, 
-                         sep="\t", row.names=2, comment.char = "", quote="") #11095067 obs of 32 variables
-annot.noninoc <- annot.noninoc[-123371,]#remove gene_id_gene_id_000 (not in gene file)
-annot.noninoc<- annot.noninoc[order(row.names(annot.noninoc)),]#sort
-annot.noninoc$tax_genus <- str_match(annot.noninoc$tax_genus, "[A-Z][a-z]*") #Fix the genus column
-annot.noninoc$tax_genus <- gsub("\\bN\\b", "NULL", annot.noninoc$tax_genus) #Fix the genus column
+                         sep="\t", comment.char = "", quote="") #11095067 obs of 38 variables
+row.names(annot.noninoc) <- annot.noninoc$gene_id
+annot.noninoc<- annot.noninoc |> arrange (gene_id)#sort#sort
 saveRDS(annot.noninoc, file = here("data","intermediate", "annot.noninoc.RDS"))
 
 
-#Genes
+#Genes abundance
 #All samples assembly
 genes.all <- read.table(file=here("data", "raw", "merged_gene_abundance.tsv"), 
                         header=T, sep="\t", comment.char = "", row.names = 1)
@@ -93,3 +86,9 @@ blast_output <- read.table(here("data","raw","blast_output.txt"), sep = "\t")
 colnames(blast_output) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
                             "qstart", "qend", "sstart", "send", "evalue", "bitscore")
 saveRDS(blast_output, file = here("data","intermediate","blast_output.RDS"))
+
+#Gene taxonomical annotations
+gene.id <- read.table(here("data", "raw", "gene_id.tsv"), sep="\t") #9716884 obs. of 1 variable
+contig.id <- read.table(here("data", "raw", "contig_id.tsv"), sep="\t") #9716884 obs. of 1 variable
+gene.tax <- read.table(here("data", "raw", "out.ORF2LCA.txt"), fill = TRUE, sep="\t") #11095067 obs. of 4 variables
+tax.names <- read.table(here("data", "raw", "names.dmp"), fill = TRUE, sep="\t") #1237947 obs. of 8 variables

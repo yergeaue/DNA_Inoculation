@@ -122,6 +122,8 @@ i.15.table.0 <- genes.inoc.rel.absent %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
          "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Order"=tax_order, "Genus"=tax_genus )
 
+saveRDS(i.15.table.0, here("data","intermediate","i.15.table.0.RDS"))
+
 #Ambient inoculum, 15% SWHC
 ni.15.table.0 <- genes.inoc.rel.absent %>%
   select(contains("T1.I2")) %>%
@@ -132,6 +134,8 @@ ni.15.table.0 <- genes.inoc.rel.absent %>%
   arrange(desc(count)) %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
          "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Order"=tax_order, "Genus"=tax_genus )
+
+saveRDS(ni.15.table.0, here("data","intermediate","ni.15.table.0.RDS"))
 
 #Irrigated inoculum, 50% SWHC
 i.50.table.0 <- genes.inoc.rel.absent %>%
@@ -144,6 +148,8 @@ i.50.table.0 <- genes.inoc.rel.absent %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
          "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Order"=tax_order, "Genus"=tax_genus )
 
+saveRDS(i.50.table.0, here("data","intermediate","i.50.table.0.RDS"))
+
 #Ambient inoculum, 50% SWHC
 ni.50.table.0 <- genes.inoc.rel.absent %>%
   select(contains("T2.I2")) %>%
@@ -154,6 +160,8 @@ ni.50.table.0 <- genes.inoc.rel.absent %>%
   arrange(desc(count)) %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
          "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Order"=tax_order, "Genus"=tax_genus )
+
+saveRDS(ni.50.table.0, here("data","intermediate","ni.50.table.0.RDS"))
 
 #Combine all samples
 tax.trans <- bind_rows(list(i.15=i.15.table.0,ni.15=ni.15.table.0,i.50=i.50.table.0,ni.50=ni.50.table.0), .id="treatment")

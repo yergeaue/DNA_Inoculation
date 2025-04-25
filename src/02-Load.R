@@ -31,15 +31,16 @@ saveRDS(COG.all, file = here("data","intermediate", "COG.all.RDS"))
 annot.inoc <- read.table(file=here("data","raw", "annotations_inoc.tsv"), header=T, 
                          sep="\t", comment.char = "", quote="") #309078 obs of 38 variables
 row.names(annot.inoc) <- annot.inoc$gene_id
-annot.inoc<- annot.inoc |> arrange (gene_id)#sort
+annot.inoc<- annot.inoc |> arrange (gene_id) |> #Sort
+  rename(contig_id=X.contig_id) #Rename
 saveRDS(annot.inoc, file = here("data","intermediate", "annot.inoc.RDS"))
 #Non-inoculum assembly
 annot.noninoc <- read.table(file=here("data","raw", "annotations_noninoc.tsv"), header=T, 
                          sep="\t", comment.char = "", quote="") #11095067 obs of 38 variables
 row.names(annot.noninoc) <- annot.noninoc$gene_id
-annot.noninoc<- annot.noninoc |> arrange (gene_id)#sort#sort
+annot.noninoc<- annot.noninoc |> arrange (gene_id)|> #Sort
+  rename(contig_id=X.contig_id) #Rename
 saveRDS(annot.noninoc, file = here("data","intermediate", "annot.noninoc.RDS"))
-
 
 #Genes abundance
 #All samples assembly
@@ -91,4 +92,8 @@ saveRDS(blast_output, file = here("data","intermediate","blast_output.RDS"))
 gene.id <- read.table(here("data", "raw", "gene_id.tsv"), sep="\t") #9716884 obs. of 1 variable
 contig.id <- read.table(here("data", "raw", "contig_id.tsv"), sep="\t") #9716884 obs. of 1 variable
 gene.tax <- read.table(here("data", "raw", "out.ORF2LCA.txt"), fill = TRUE, sep="\t") #11095067 obs. of 4 variables
-tax.names <- read.table(here("data", "raw", "names.dmp"), fill = TRUE, sep="\t") #1237947 obs. of 8 variables
+tax.names <- read.table(here("data", "raw", "names.dmp"), fill = TRUE, sep="\t") #1696171 obs. of 8 variables
+saveRDS(gene.id, file = here("data","intermediate", "gene.id.RDS"))
+saveRDS(contig.id, file = here("data","intermediate", "contig.id.RDS"))
+saveRDS(gene.tax, file = here("data","intermediate", "gene.tax.RDS"))
+saveRDS(tax.names, file = here("data","intermediate", "tax.names.RDS"))

@@ -163,11 +163,28 @@ ni.50.table.0 <- genes.inoc.rel.absent %>%
 
 saveRDS(ni.50.table.0, here("data","intermediate","ni.50.table.0.RDS"))
 
+##Intersect
+intersect(intersect(intersect(i.15.table.0$`Gene ID`, i.50.table.0$`Gene ID`),ni.15.table.0$`Gene ID`),ni.50.table.0$`Gene ID`)
+#72 genes
+length(intersect(i.15.table.0$`Gene ID`, i.50.table.0$`Gene ID`)) #271
+length(intersect(i.15.table.0$`Gene ID`, ni.15.table.0$`Gene ID`)) #181
+length(intersect(i.15.table.0$`Gene ID`, ni.50.table.0$`Gene ID`)) #227
+length(intersect(i.50.table.0$`Gene ID`, ni.15.table.0$`Gene ID`)) #203
+length(intersect(i.50.table.0$`Gene ID`, ni.50.table.0$`Gene ID`)) #225
+length(intersect(ni.15.table.0$`Gene ID`, ni.50.table.0$`Gene ID`)) #260
+
 #Combine all samples
-tax.trans <- bind_rows(list(i.15=i.15.table.0,ni.15=ni.15.table.0,i.50=i.50.table.0,ni.50=ni.50.table.0), .id="treatment")
-length(unique(tax.trans$`Gene ID`))#first see amount of unique:1169
+tax.trans.0 <- bind_rows(list(i.15=i.15.table.0,ni.15=ni.15.table.0,i.50=i.50.table.0,ni.50=ni.50.table.0), .id="treatment")
+length(unique(tax.trans.0$`Gene ID`))#first see amount of unique:1169
+sum(tax.trans.0$Count==6)#How many count=6 : 0
+sum(tax.trans.0$Count==5)#How many count=5 : 4
+sum(tax.trans.0$Count==4)#How many count=4 : 34
+sum(tax.trans.0$Count==3)#How many count=3 : 139
+sum(tax.trans.0$Count==2)#How many count=2 : 489
+sum(tax.trans.0$Count==1)#How many count=1 : 1460
+
 #Create phylum level taxonomy table
-tax.trans.sum <- tax.trans %>%
+tax.trans.0.sum <- tax.trans.0 %>%
   distinct(`Gene ID`, .keep_all = TRUE) %>%
   group_by(Phylum) %>%
   summarise(sum = n()) %>%

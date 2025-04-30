@@ -10,10 +10,10 @@ gff.inoc <- readRDS(here("data", "intermediate", "gff.inoc.RDS")) #Contig inform
 gff.noninoc <- readRDS(here("data", "intermediate", "gff.noninoc.RDS")) #Contig information for the non-inoculum only assembly
 annot.inoc <- readRDS(file = here("data","intermediate", "annot.inoc.RDS"))
 annot.noninoc <- readRDS(file = here("data","intermediate", "annot.noninoc.RDS"))
-i.15.table <- readRDS(here("data","intermediate","i.15.table.RDS"))
-i.50.table <- readRDS(here("data","intermediate","i.50.table.RDS"))
-ni.15.table <- readRDS(here("data","intermediate","ni.15.table.RDS"))
-ni.50.table <- readRDS(here("data","intermediate","ni.50.table.RDS"))
+i.15.table.0 <- readRDS(here("data","intermediate","i.15.table.0.RDS"))
+i.50.table.0 <- readRDS(here("data","intermediate","i.50.table.0.RDS"))
+ni.15.table.0 <- readRDS(here("data","intermediate","ni.15.table.0.RDS"))
+ni.50.table.0 <- readRDS(here("data","intermediate","ni.50.table.0.RDS"))
 
 #I inoculum, 15% SWHC
 blast.i.15 <- blast_output |> 

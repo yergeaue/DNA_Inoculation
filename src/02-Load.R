@@ -67,6 +67,9 @@ colSums(genes.inoc.rel)#Sanity check - ok all 1s
 saveRDS(genes.inoc, file = here("data","intermediate", "genes.inoc.RDS"))
 saveRDS(genes.inoc.rel, file = here("data","intermediate", "genes.inoc.rel.RDS"))
 
+#Contigs abundance
+
+
 #Genes position on contigs
 #Inoculum only assembly
 gff.inoc <- read.table(here("data","raw","Contigs_renamed_inoc.gff"), sep="\t") #309078 obs of 9 variables
@@ -97,3 +100,7 @@ saveRDS(gene.id, file = here("data","intermediate", "gene.id.RDS"))
 saveRDS(contig.id, file = here("data","intermediate", "contig.id.RDS"))
 saveRDS(gene.tax, file = here("data","intermediate", "gene.tax.RDS"))
 saveRDS(tax.names, file = here("data","intermediate", "tax.names.RDS"))
+
+#Waafle output file - List of LGT created from non-inoculum assembly
+lgt <- read.table(here("data", "raw", "final.lgt.tsv.qc_pass"), sep = "\t", header = T) #111 obs. of 17 variables
+saveRDS(lgt, here("data","intermediate", "lgt.RDS"))

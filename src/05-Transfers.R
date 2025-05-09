@@ -189,6 +189,3 @@ tax.trans.0.sum <- tax.trans.0 %>%
   group_by(Phylum) %>%
   summarise(sum = n()) %>%
   mutate(per =  round(100 *sum/sum(sum),1))
-
-
-

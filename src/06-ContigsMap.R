@@ -1,6 +1,7 @@
 ##Visualise genes in the contigs
-##Compare genes in Inoculum assembly vs. samples assembly (also contains controls - but selected genes should be absent from control)
+##Compare genes in Inoculum assembly vs. non-inoculum assembly (also contains controls - but selected genes should be absent from control)
 ##Blast the inoculum genes onto the non-inoculum genes (on the compute cluster: 
+##Running from /project/6004719/projects/dna_recruitment_2nd_attempt/non_inoculums/gene_prediction
 ##blastn -query ../../inoculums_only/gene_prediction/Contigs_renamed.fna  -db Contigs_renamed.fna -outfmt 6 -num_alignments 1 >blast_output.txt)
 ##blast_output.txt copied in the raw data folder
 ##Find, visualize and compare the contigs

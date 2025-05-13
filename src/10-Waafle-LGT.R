@@ -1,11 +1,11 @@
 ##Waafle method to find lgt
+#Ran the program according to instructions on the cluster. Resulted in 111 potential LGT contigs
 lgt <- readRDS(here("data","intermediate", "lgt.RDS"))
 blast_output <- readRDS(here("data", "intermediate", "blast_output.RDS")) #To link with inoculum
-genes.inoc.rel <- genes.inoc.rel[,order(colnames(genes.inoc.rel))] #Contigs made from the inoculum
-gff.inoc <- readRDS(here("data", "intermediate", "gff.inoc.RDS")) #Contig information for the inoculum only assembly
+genes.noninoc.rel <- readRDS(here("data","intermediate", "genes.noninoc.rel.RDS")) #Genes relative abundance (non-inoculum assembly)
 gff.noninoc <- readRDS(here("data", "intermediate", "gff.noninoc.RDS")) #Contig information for the non-inoculum only assembly
-annot.inoc <- readRDS(here("data", "intermediate", "annot.inoc.RDS"))
 annot.noninoc <- readRDS(file = here("data","intermediate", "annot.noninoc.RDS"))
+map <- readRDS(here("data", "intermediate", "map.RDS"))
 
 #Fix the lgt file, missing genes for some contigs
 lgt.summary <-  lgt |>
@@ -47,42 +47,61 @@ ggplot(lgt.plot, aes(xmin = start, xmax = end, y = contig_id, fill = CLADE, labe
   scale_fill_manual(values = color6[c(2,4,6)]) 
 
 
-#Are some lgt contigs absent in controls? 
-contigs.lgt.absent <- genes.inoc.rel[rowSums(genes.inoc.rel[,map.nosoil$Inoculum=="ctrl"])==0,  ]
+##LGT genes
+lgt.genes <- lgt.plot |>
+  filter(CLADE=="B") |>
+  select(gene_id) |>
+  left_join(annot.noninoc)
 
-#LGT contigs (non-inoculum assembly) also found in inoculum assembly by blast
-lgt.inoc <- blast_output |> 
-  left_join(gff.noninoc, by = c("sseqid"="gene_id")) |> #add contig info for subject genes
-  filter(contig_id%in%lgt.fix$CONTIG_NAME) |> #Keep only genes potentially transferred
-  left_join(gff.inoc, by = c("qseqid"="gene_id"), suffix = c("_s", "_q")) |> #add contig info for query genes
-  mutate(contig.q.vs.s = interaction(contig_id_q,contig_id_s, sep = " vs ")) |> #Add column linking the two contigs
-  left_join(select(annot.noninoc, gene_id, product_name, kegg_entry, kegg_definition, tax_phylum, tax_genus), by = c("sseqid"="gene_id")) |>
-  left_join(select(annot.inoc, gene_id, product_name, kegg_entry, kegg_definition, tax_phylum, tax_genus), 
-            by = c("qseqid"="gene_id"), suffix = c("_s", "_q"))
+#Table for publication
+lgt.genes.pub <- lgt.genes |>
+  select(gene_id, product_name, kegg_entry, kegg_definition, tax_phylum, tax_order, tax_genus)
 
+#Summary stats for text
+lgt.genes.summary <- lgt.genes |>
+  group_by(tax_phylum) |>
+  summarise(count = n()) |>
+  mutate(percent = count/sum(count)*100)
+  
+#Which ones are found in inoculum?-none!
+#Find genes from Waafle that have match in blast file
+lgt.genes.blast <- lgt.genes |> 
+  left_join(blast_output, by = c("gene_id"="sseqid"), keep = TRUE)
+sum(!is.na(lgt.genes.blast$qseqid)) #0
 
+##Look for distribution of genes across treatments
+lgt.genes.rel <-  lgt.genes |>
+  left_join(mutate(genes.noninoc.rel, gene_id=row.names(genes.noninoc.rel)))
 
-gene.i.15.inoc <- gff.inoc |>
-  filter(contig_id %in% blast.i.15$contig_id_q) |> #Keep only contigs from blast file
-  left_join(select(annot.inoc, gene_id, product_name, kegg_entry, kegg_definition, tax_phylum)) |> #Add annotations (selected var)
-  left_join(select(blast.i.15, contig_id_q, contig.q.vs.s), by = c("contig_id"="contig_id_q")) |> #Add contig linkage info
-  mutate(focal = gene_id%in%blast.i.15$qseqid) |>
-  mutate(assembly = "inoculum")
+lgt.genes.anova <- lgt.genes.rel[,c(1,39:74)] |>
+  column_to_rownames(var = "gene_id") |>
+  t() |> 
+  data.frame() |>
+  rownames_to_column(var = "Sample")|>
+  left_join(rownames_to_column(map, var = "Sample")) |>
+  pivot_longer(cols = c(2:115), names_to = "gene_id", values_to = "RelAbund")
+  
+#Test for significance
+#Normality assumption
+lgt.genes.anova |> 
+  group_by(gene_id) |>
+  shapiro_test(RelAbund) #Many not ok
 
-gene.i.15.noninoc <- gff.noninoc |>
-  filter(contig_id %in% blast.i.15$contig_id_s) |> #Keep only contigs from blast file
-  left_join(select(annot.noninoc, gene_id, product_name, kegg_entry, kegg_definition, tax_phylum)) |> #Add annotations (selected var)
-  left_join(select(blast.i.15, contig_id_s, contig.q.vs.s), by = c("contig_id"="contig_id_s")) |> #Add contig linkage info
-  mutate(focal = gene_id%in%blast.i.15$sseqid) |>
-  mutate(assembly = "non-inoculum")
+#Equality of variances assumption
+lgt.genes.anova |> 
+  group_by(gene_id) |>
+  levene_test(RelAbund~Inoculum*SoilWaterContent) 
 
-gene.i.15.both <- rbind(gene.i.15.inoc, gene.i.15.noninoc)
-
-ggplot(gene.i.15.both, aes(xmin = start, xmax = end, y = contig_id, fill = focal, label=product_name)) +
-  geom_gene_arrow(aes(forward = strand == "+")) +
-  geom_gene_label(align = "left")+
-  facet_wrap(~ contig.q.vs.s, scales = "free", ncol = 2) +
-  scale_fill_manual(values = color6[c(2,4)]) 
-
-#Arrange lgt for plotting
-
+#Computing the statistical tests - Paired Wilcoxon
+stat.test.lgt.SWC <- lgt.genes.anova |>
+  group_by(gene_id) |>
+  wilcox_test(RelAbund~SoilWaterContent, paired = TRUE)|>
+  filter(p<0.05) |>
+  left_join(lgt.genes.pub)
+stat.test.lgt.SWC #27 significant
+stat.test.lgt.inoc <- lgt.genes.anova |>
+  group_by(gene_id) |>
+  wilcox_test(RelAbund~Inoculum, paired = TRUE) |>
+  filter(p.adj<0.05)|>
+  left_join(lgt.genes.pub)
+stat.test.lgt.inoc #4 significant, only one with ctrl

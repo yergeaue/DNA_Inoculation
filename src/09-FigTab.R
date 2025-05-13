@@ -25,3 +25,8 @@ gtsave(table4, filename = here("output","tables","table4.docx"))
 table5 <- gt(ni.50.table) |>
   tab_header(title = "Table 5", subtitle="Potential naturally transferred genes from the ambient inoculum under HW")
 gtsave(table5, filename = here("output","tables","table5.docx"))
+
+#Table S5
+tableS5 <- gt(lgt.genes.pub) |>
+  tab_header(title = "Table S5", subtitle="Potentially LGT genes identified by WAAFLE")
+gtsave(tableS5, filename = here("output","tables","tableS5.docx"))

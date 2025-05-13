@@ -1,5 +1,7 @@
 #Find contigs where genes have discordant taxonomy --> indicative of HGT, as in 
 # https://academic.oup.com/ismecommun/article/4/1/ycae073/7671050
+#Found a better way: Waafle. See script 10-Waafle-LGT
+#Below is all legacy
 
 #Load data
 gene.id <- readRDS(file = here("data","intermediate", "gene.id.RDS")) #Gene_id in same order as Contig_id_N

@@ -52,6 +52,7 @@ genes.all.rel <- data.frame(t(apply(genes.all, 1, "/", colSums(genes.all))))#Nor
 colSums(genes.all.rel)#Sanity check - ok all 1s
 saveRDS(genes.all, file = here("data","intermediate", "genes.all.RDS"))
 saveRDS(genes.all.rel, file = here("data","intermediate", "genes.all.rel.RDS"))
+
 #Inoculum only assembly -- 2 files, one with the samples and another with the inoculum
 genes.inoc <- read.table(file=here("data", "raw", "merged_gene_abundance_inoc.tsv"), 
                         header=T, sep="\t", comment.char = "", row.names = 1) #309078 obs. of 36 variables
@@ -67,8 +68,15 @@ colSums(genes.inoc.rel)#Sanity check - ok all 1s
 saveRDS(genes.inoc, file = here("data","intermediate", "genes.inoc.RDS"))
 saveRDS(genes.inoc.rel, file = here("data","intermediate", "genes.inoc.rel.RDS"))
 
-#Contigs abundance
-
+#Non-inoculum assembly
+genes.noninoc <- read.table(file=here("data", "raw", "merged_gene_abundance_noninoc.tsv"), 
+                        header=T, sep="\t", comment.char = "", row.names = 1) #11,095,067 obs. of 36 variables
+genes.noninoc <- genes.noninoc[order(row.names(genes.noninoc)),]#sort
+colnames(genes.noninoc)[3] <- "T1.I1.5"#Bug with row name
+genes.noninoc.rel <- data.frame(t(apply(genes.noninoc, 1, "/", colSums(genes.noninoc))))#Normalization
+colSums(genes.noninoc.rel)#Sanity check - ok all 1s
+saveRDS(genes.noninoc, file = here("data","intermediate", "genes.noninoc.RDS"))
+saveRDS(genes.noninoc.rel, file = here("data","intermediate", "genes.noninoc.rel.RDS"))
 
 #Genes position on contigs
 #Inoculum only assembly

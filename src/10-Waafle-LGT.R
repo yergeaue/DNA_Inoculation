@@ -6,6 +6,7 @@ genes.noninoc.rel <- readRDS(here("data","intermediate", "genes.noninoc.rel.RDS"
 gff.noninoc <- readRDS(here("data", "intermediate", "gff.noninoc.RDS")) #Contig information for the non-inoculum only assembly
 annot.noninoc <- readRDS(file = here("data","intermediate", "annot.noninoc.RDS"))
 map <- readRDS(here("data", "intermediate", "map.RDS"))
+palette(paletteer_d("ggthemes::Tableau_20"))
 
 #Fix the lgt file, missing genes for some contigs
 lgt.summary <-  lgt |>
@@ -44,7 +45,7 @@ ggplot(lgt.plot, aes(xmin = start, xmax = end, y = contig_id, fill = CLADE, labe
   geom_gene_arrow(aes(forward = strand == "+")) +
   geom_gene_label(align = "left")+
   #facet_wrap(~ contig_id, scales = "free", ncol = 2) +
-  scale_fill_manual(values = color6[c(2,4,6)]) 
+  scale_fill_manual(values = palette()) 
 
 
 ##LGT genes

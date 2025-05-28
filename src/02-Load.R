@@ -1,6 +1,7 @@
 #Palette
-color6 <- c("#016180", "#4a8cb0", "#cde3f0","#EED9C4","#8c5c47", "#4c2c17")
-palette(brewer.pal(n=6, name="BrBG"))
+#palette(paletteer_c("ggthemes::Classic Orange-Blue", 20))
+palette(paletteer_d("ggthemes::Tableau_20"))
+#palette(paletteer_dynamic("cartography::pastel.pal", 20))
 
 #Mapping file
 map <- read.table(file=here("data", "raw", "mapping_file.tsv"), header=T, 
@@ -75,6 +76,7 @@ genes.noninoc <- genes.noninoc[order(row.names(genes.noninoc)),]#sort
 colnames(genes.noninoc)[3] <- "T1.I1.5"#Bug with row name
 genes.noninoc.rel <- data.frame(t(apply(genes.noninoc, 1, "/", colSums(genes.noninoc))))#Normalization
 colSums(genes.noninoc.rel)#Sanity check - ok all 1s
+genes.noninoc.rel <- genes.noninoc.rel[,order(colnames(genes.noninoc.rel))] #Order
 saveRDS(genes.noninoc, file = here("data","intermediate", "genes.noninoc.RDS"))
 saveRDS(genes.noninoc.rel, file = here("data","intermediate", "genes.noninoc.rel.RDS"))
 
@@ -94,6 +96,10 @@ saveRDS(gff.inoc, file = here("data","intermediate", "gff.inoc.RDS"))
 saveRDS(gff.noninoc, file = here("data","intermediate", "gff.noninoc.RDS"))
 
 #Blast output
+##Blast the inoculum genes onto the non-inoculum genes (on the compute cluster: 
+##Running from /project/6004719/projects/dna_recruitment_2nd_attempt/non_inoculums/gene_prediction
+##blastn -query ../../inoculums_only/gene_prediction/Contigs_renamed.fna  -db Contigs_renamed.fna -outfmt 6 -num_alignments 1 >blast_output.txt)
+##blast_output.txt copied in the raw data folder
 blast_output <- read.table(here("data","raw","blast_output.txt"), sep = "\t")
 colnames(blast_output) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
                             "qstart", "qend", "sstart", "send", "evalue", "bitscore")

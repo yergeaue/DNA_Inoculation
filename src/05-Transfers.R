@@ -38,10 +38,12 @@ i.15.table.0 <- genes.inoc.rel.absent %>%
   mutate(count=rowSums(.>margin*dil*genes.inoc.rel.absent.i$i.i)) %>%
   rownames_to_column(var = "gene_id") %>%
   filter(count>0) %>%
-  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
+  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, kegg_module_desc, 
+                   kegg_pathway_desc, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
   arrange(desc(count)) %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
-         "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
+         "KEGG definition"=kegg_definition, "KEGG module"=kegg_module_desc, 
+         "KEGG pathway"=kegg_pathway_desc, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
 
 #i.15.table.0.def <- i.15.table.0[i.15.table.0$`KEGG entry`!="NULL" | i.15.table.0$Phylum!="NULL",]
 
@@ -53,10 +55,12 @@ ni.15.table.0 <- genes.inoc.rel.absent %>%
   mutate(count=rowSums(.>margin*dil*genes.inoc.rel.absent.ni$i.ni)) %>%
   rownames_to_column(var = "gene_id") %>%
   filter(count>0) %>%
-  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
+  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, kegg_module_desc, 
+                   kegg_pathway_desc, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
   arrange(desc(count)) %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
-         "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
+         "KEGG definition"=kegg_definition, "KEGG module"=kegg_module_desc, 
+         "KEGG pathway"=kegg_pathway_desc, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
 
 #ni.15.table.0.def <- ni.15.table.0[ni.15.table.0$`KEGG entry`!="NULL" | ni.15.table.0$Phylum!="NULL",]
 
@@ -68,11 +72,12 @@ i.50.table.0 <- genes.inoc.rel.absent %>%
   mutate(count=rowSums(.>margin*dil*genes.inoc.rel.absent$i.i)) %>%
   rownames_to_column(var = "gene_id") %>%
   filter(count>0) %>%
-  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
+  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, kegg_module_desc, 
+                   kegg_pathway_desc, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
   arrange(desc(count)) %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
-         "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
-
+         "KEGG definition"=kegg_definition, "KEGG module"=kegg_module_desc, 
+         "KEGG pathway"=kegg_pathway_desc, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
 #i.50.table.0.def <- i.50.table.0[i.50.table.0$`KEGG entry`!="NULL" | i.50.table.0$Phylum!="NULL",]
 
 #saveRDS(i.50.table.0.def, here("data","intermediate","i.50.table.0.def.RDS"))
@@ -83,10 +88,12 @@ ni.50.table.0 <- genes.inoc.rel.absent %>%
   mutate(count=rowSums(.>margin*dil*genes.inoc.rel.absent$i.ni)) %>%
   rownames_to_column(var = "gene_id") %>%
   filter(count>0) %>%
-  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
+  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, kegg_module_desc, 
+                   kegg_pathway_desc, tax_phylum, tax_family, tax_genus)) %>% #Add annotations (selected var)
   arrange(desc(count)) %>%
   select("Gene ID"=gene_id, "Count"=count, "KEGG entry"=kegg_entry, 
-         "KEGG definition"=kegg_definition, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
+         "KEGG definition"=kegg_definition, "KEGG module"=kegg_module_desc, 
+         "KEGG pathway"=kegg_pathway_desc, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
 
 #ni.50.table.0.def <- ni.50.table.0[ni.50.table.0$`KEGG entry`!="NULL" | ni.50.table.0$Phylum!="NULL",]
 
@@ -124,8 +131,16 @@ tax.trans.0.sum <- tax.trans.0 |>
   #filter(Phylum!="NULL")|> #1067 genes at this stage
   group_by(Phylum) |>
   summarise(sum = n()) |>
-  mutate(per =  round(100 *sum/sum(sum),1))
+  mutate(rel =  sum/sum(sum))
 
+#Create kegg_pathway table
+fun.trans.0.sum <- tax.trans.0 |>
+  filter(`KEGG pathway` !="NULL")|> #133 genes at this stage
+  filter(`KEGG pathway` !="") |> #104 genes at this stage
+  mutate(`KEGG pathway` = gsub("==.*$","", `KEGG pathway`)) |> #Get rid of multiple pathways - keep first (imperfect)
+  group_by(`KEGG pathway`) |>
+  summarise(sum = n()) |>
+  mutate(rel =  sum/sum(sum))
 
 #Overlap with lgt Waafle at the KEGG entry level - 3 entries
 trans.lgt.overlap <- lgt.genes.pub |>

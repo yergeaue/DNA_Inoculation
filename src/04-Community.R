@@ -49,7 +49,6 @@ family.inoc <- genes.inoc.rel|>
   
 #Noninoc
 family.noninoc <- genes.noninoc.rel|>
-  slice_sample(n = 10000)|>
   rownames_to_column(var = "gene_id") |>
   left_join(annot.noninoc) |>
   filter(tax_family != "NULL") |>

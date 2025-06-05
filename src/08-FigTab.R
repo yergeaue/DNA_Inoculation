@@ -25,6 +25,6 @@ tableS1 <- gt(lgt.genes.pub) |>
 gtsave(tableS5, filename = here("output","tables","tableS1.docx"))
 
 #Table S2
-tableS2 <- gt(tax.trans.0.def) |>
+tableS2 <- gt(trans.pub) |>
   tab_header(title = "Table S2", subtitle="Potentially LGT genes overrepresented in inoculated samples")
 gtsave(tableS2, filename = here("output","tables","tableS2.docx"))

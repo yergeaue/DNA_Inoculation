@@ -47,6 +47,7 @@ ggplot(lgt.plot, aes(xmin = start, xmax = end, y = contig_id, fill = CLADE, labe
   #facet_wrap(~ contig_id, scales = "free", ncol = 2) +
   scale_fill_manual(values = palette()) 
 
+saveRDS(lgt.plot, here("data","intermediate","lgt.plot.RDS"))
 
 ##LGT genes
 lgt.genes <- lgt.plot |>
@@ -57,6 +58,8 @@ lgt.genes <- lgt.plot |>
 #Table for publication
 lgt.genes.pub <- lgt.genes |>
   select(gene_id, product_name, kegg_entry, kegg_definition, tax_phylum, tax_order, tax_genus)
+
+saveRDS(lgt.genes.pub, here("data","intermediate","lgt.genes.pub.RDS"))
 
 #Summary stats for text
 lgt.genes.summary <- lgt.genes |>

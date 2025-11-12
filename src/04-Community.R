@@ -46,7 +46,8 @@ family.inoc <- genes.inoc.rel|>
   group_by(tax_family)|>
   summarise(across(2:37, ~ sum(.)))|>
   mutate(across(2:37, ~ ./sum(.)))
-  
+saveRDS(family.inoc, here("data","intermediate", "family.inoc.RDS"))
+
 #Noninoc
 family.noninoc <- genes.noninoc.rel|>
   rownames_to_column(var = "gene_id") |>
@@ -69,6 +70,7 @@ family.noninoc <- genes.noninoc.rel|>
   slice(-39) |>
   left_join(rownames_to_column(map, var = "Sample")) |>
   pivot_longer(cols = c(2:21), names_to = "Family", values_to = "RelAbund")
+saveRDS(family.noninoc, here("data","intermediate", "family.noninoc.RDS"))
 
 #Plot
 family.noninoc$Inoculum=factor(family.noninoc$Inoculum, c("i", "ni", "ctrl"))
@@ -85,3 +87,60 @@ stack.all <-
   scale_y_continuous(limits=c(0,1), expand=c(0,0))
 
 stack.all
+
+#Test for significance of inoculation
+#Normality assumption
+family.noninoc %>% 
+  filter(SoilWaterContent %in% c("15%","50%")) %>%
+  group_by(Family) %>%
+  shapiro_test(RelAbund) #Most not ok.
+
+#Equality of variances assumption
+trans.phylum.all %>% 
+  filter(SoilWaterContent %in% c("15%","50%")) %>%
+  group_by(Phylum) %>%
+  levene_test(RelAbund~Inoculum*SoilWaterContent) #A few not OK.
+
+#Computing the statistical test - paired t-test on effect of inoculation  
+#15%-continuous
+family.noninoc |> 
+  filter(SoilWaterContent %in% c("15%")) |>
+  filter(Inoculum %in% c("ni","ctrl")) |>
+  group_by(Family) |>
+  arrange(Inoculum,Sample) |>
+  wilcox_test(RelAbund ~ Inoculum, paired = TRUE)
+ #Nitrososphaeraceae 0.0625
+
+#50%-continuous
+family.noninoc |> 
+  filter(SoilWaterContent %in% c("50%")) |>
+  filter(Inoculum %in% c("ni","ctrl")) |>
+  group_by(Family) |>
+  arrange(Inoculum,Sample) |>
+  wilcox_test(RelAbund ~ Inoculum, paired = TRUE)
+#Hyphomicrobiaceae  0.0313; Mycobacteriaceae 0.0938; Nocardioidaceae 0.0625
+
+#15%-intermittent
+family.noninoc |> 
+  filter(SoilWaterContent %in% c("15%")) |>
+  filter(Inoculum %in% c("i","ctrl")) |>
+  group_by(Family) |>
+  arrange(Inoculum,Sample) |>
+  wilcox_test(RelAbund ~ Inoculum, paired = TRUE)
+#Nitrososphaeraceae 0.0938
+
+#50%-continuous
+family.noninoc |> 
+  filter(SoilWaterContent %in% c("50%")) |>
+  filter(Inoculum %in% c("i","ctrl")) |>
+  group_by(Family) |>
+  arrange(Inoculum,Sample) |>
+  wilcox_test(RelAbund ~ Inoculum, paired = TRUE)
+#None
+
+#Means for text
+print(family.noninoc |> 
+  filter(SoilWaterContent %in% c("15%","50%")) |>
+  filter(Family %in% c("Hyphomicrobiaceae", "Mycobacteriaceae", "Nocardioidaceae", "Nitrososphaeraceae")) |>
+  group_by(Family, Inoculum, SoilWaterContent) |>
+  summarise(100*mean(RelAbund)), n=24 )

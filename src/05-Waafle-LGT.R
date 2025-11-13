@@ -66,7 +66,12 @@ lgt.genes.summary <- lgt.genes |>
   group_by(tax_phylum) |>
   summarise(count = n()) |>
   mutate(percent = count/sum(count)*100)
-  
+
+lgt.genes.summary.2 <- lgt.genes |>
+  group_by(kegg_definition) |>
+  summarise(count = n()) |>
+  mutate(percent = count/sum(count)*100)
+
 #Which ones are found in inoculum?-none!
 #Find genes from Waafle that have match in blast file
 lgt.genes.blast <- lgt.genes |> 

@@ -68,7 +68,7 @@ lgt.genes.summary <- lgt.genes |>
   mutate(percent = count/sum(count)*100)
 
 lgt.genes.summary.2 <- lgt.genes |>
-  group_by(kegg_definition) |>
+  group_by(kegg_pathway_desc) |>
   summarise(count = n()) |>
   mutate(percent = count/sum(count)*100)
 

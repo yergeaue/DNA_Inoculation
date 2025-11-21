@@ -25,6 +25,11 @@ tableS1 <- gt(lgt.genes.pub) |>
 gtsave(tableS1, filename = here("output","tables","tableS1.docx"))
 
 #Table S2
-tableS2 <- gt(trans.pub) |>
-  tab_header(title = "Table S2", subtitle="Potentially LGT genes overrepresented in inoculated samples")
+tableS2 <- gt(summary.stat.lgt.SWC) |>
+  tab_header(title = "Table S2", subtitle="Potentially LGT genes identified by WAAFLE that are significantly affected by soil water content")
 gtsave(tableS2, filename = here("output","tables","tableS2.docx"))
+
+#Table S3
+tableS3 <- gt(trans.pub) |>
+  tab_header(title = "Table S3", subtitle="Potentially LGT genes overrepresented in inoculated samples")
+gtsave(tableS3, filename = here("output","tables","tableS3.docx"))

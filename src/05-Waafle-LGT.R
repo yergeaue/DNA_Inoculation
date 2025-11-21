@@ -108,10 +108,24 @@ stat.test.lgt.SWC <- lgt.genes.anova |>
   wilcox_test(RelAbund~SoilWaterContent, paired = TRUE)|>
   filter(p<0.05) |>
   left_join(lgt.genes.pub)
-stat.test.lgt.SWC #27 significant
+stat.test.lgt.SWC #28 significant
+summary.stat.lgt.SWC <- lgt.genes.anova |>
+  mutate(RelAbund=RelAbund*1e6)|>
+  group_by(gene_id, SoilWaterContent) |>
+  get_summary_stats(RelAbund, show = "mean")|>
+  filter(gene_id%in%stat.test.lgt.SWC$gene_id)|>
+  left_join(lgt.genes.pub)
+summary.stat.lgt.SWC #14 are more abundant in LW
 stat.test.lgt.inoc <- lgt.genes.anova |>
   group_by(gene_id) |>
   wilcox_test(RelAbund~Inoculum, paired = TRUE) |>
   filter(p.adj<0.05)|>
   left_join(lgt.genes.pub)
-stat.test.lgt.inoc #4 significant, only one with ctrl
+stat.test.lgt.inoc #2 significant, only one with ctrl
+summary.stat.lgt.inoc <- lgt.genes.anova |>
+  mutate(RelAbund=RelAbund*1e6)|>
+  group_by(gene_id, Inoculum) |>
+  get_summary_stats(RelAbund, show = "mean")|>
+  filter(gene_id%in%stat.test.lgt.inoc$gene_id)|>
+  left_join(lgt.genes.pub)
+summary.stat.lgt.inoc #groES is more abundant in the intermittent inoculum

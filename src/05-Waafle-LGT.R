@@ -57,7 +57,8 @@ lgt.genes <- lgt.plot |>
 
 #Table for publication
 lgt.genes.pub <- lgt.genes |>
-  select(gene_id, product_name, kegg_entry, kegg_definition, tax_phylum, tax_order, tax_genus)
+  select(gene_id, product_name, kegg_entry, kegg_definition, kegg_module_desc, kegg_pathway_desc, tax_phylum, tax_order, tax_genus)|>
+  mutate(kegg_pathway_desc = gsub("==.*$","", kegg_pathway_desc)) #Get rid of multiple pathways - keep first (imperfect)
 
 saveRDS(lgt.genes.pub, here("data","intermediate","lgt.genes.pub.RDS"))
 

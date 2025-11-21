@@ -72,7 +72,7 @@ trans.bin <- left_join(ni.reps, i.reps)
 
 #Add annotations
 trans.bin.annot <- trans.bin |>
-  left_join(select(annot.inoc, gene_id, kegg_entry, kegg_definition, kegg_module_desc, 
+  left_join(select(annot.inoc, gene_id, product_name, kegg_entry, kegg_definition, kegg_module_desc, 
                     kegg_pathway_desc, tax_phylum, tax_family, tax_genus)) #Add annotations (selected var)
 
 saveRDS(trans.bin.annot, here("data","intermediate", "trans.bin.annot.RDS"))
@@ -112,8 +112,8 @@ trans.pub <- trans.bin.annot |>
   ungroup()|>
   filter(count.i+count.ni>0)|>
   mutate(kegg_pathway_desc = gsub("==.*$","", kegg_pathway_desc)) |> #Get rid of multiple pathways - keep first (imperfect)
-  select("Gene ID"=gene_id, "Count intermittent"=count.i, "Count continuous"=count.ni, "KEGG entry"=kegg_entry, 
-         "KEGG definition"=kegg_definition, "KEGG module"=kegg_module_desc, 
+  select("Gene ID"=gene_id, "Count intermittent"=count.i, "Count continuous"=count.ni, "Product name"=product_name,
+         "KEGG entry"=kegg_entry, "KEGG definition"=kegg_definition, "KEGG module"=kegg_module_desc, 
          "KEGG pathway"=kegg_pathway_desc, "Phylum"=tax_phylum, "Family"=tax_family, "Genus"=tax_genus )
 
 #Overlap with lgt Waafle at the KEGG entry level ? - 3 entries

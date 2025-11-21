@@ -22,7 +22,7 @@ ggsave(file= here("output", "figures", "Fig3.tiff"), fig3, width = 7, height = 1
 #Table S1
 tableS1 <- gt(lgt.genes.pub) |>
   tab_header(title = "Table S1", subtitle="Potentially LGT genes identified by WAAFLE")
-gtsave(tableS5, filename = here("output","tables","tableS1.docx"))
+gtsave(tableS1, filename = here("output","tables","tableS1.docx"))
 
 #Table S2
 tableS2 <- gt(trans.pub) |>
